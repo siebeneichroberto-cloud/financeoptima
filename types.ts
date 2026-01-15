@@ -30,7 +30,10 @@ export interface FinancialInstitution {
   repurchaseMora: number;    // Mora Recompra Mensal (% a.m.)
   ticketFee: number;         // Valor emissão boleto (R$)
   transferFee: number;       // Valor transferência (R$)
+  serasaFee: number;         // Custo consulta Serasa por título (R$)
+  signatureFee: number;      // Custo assinatura por título (R$)
   minDays: number;           // Prazo Mínimo de Antecipação (Dias)
+  observations: string;      // Observações do contrato
 }
 
 export interface Title {
@@ -44,11 +47,19 @@ export interface Title {
 export interface Operation {
   id: string;
   date: string;
+  referenceDate: string; // Data usada no cálculo
   institutionName: string;
   grossTotal: number;
   netTotal: number;
   discountTotal: number;
   titlesCount: number;
+  details?: {
+    results: CalculationResult[];
+    repurchaseItems: any[];
+    repurchaseTotal: number;
+    fixedFees: number;
+    totals: any;
+  }
 }
 
 export interface CalculationResult {
@@ -61,6 +72,9 @@ export interface CalculationResult {
   discountValue: number;
   adValoremValue: number;
   iofValue: number;
+  ticketFeeValue: number;
+  serasaFeeValue: number;
+  signatureFeeValue: number;
   days: number;           // Dias reais
   calculationDays: number; // Dias utilizados para o cálculo (respeitando o mínimo)
 }

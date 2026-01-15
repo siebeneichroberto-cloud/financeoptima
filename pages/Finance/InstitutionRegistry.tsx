@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FinancialInstitution } from '../../types';
 import { db } from '../../db';
-import { Building2, Edit2, Trash2, Info, Percent, Wallet, RefreshCw } from 'lucide-react';
+import { Building2, Edit2, Trash2, Info, Percent, Wallet, RefreshCw, FileText, Search, Clock, ShieldAlert } from 'lucide-react';
 
 const InstitutionRegistry: React.FC = () => {
   const [institutions, setInstitutions] = useState<FinancialInstitution[]>(db.getInstitutions());
@@ -19,7 +19,10 @@ const InstitutionRegistry: React.FC = () => {
     repurchaseMora: 0,
     ticketFee: 0, 
     transferFee: 0,
-    minDays: 0
+    serasaFee: 0,
+    signatureFee: 0,
+    minDays: 0,
+    observations: ''
   });
 
   useEffect(() => {
@@ -33,6 +36,10 @@ const InstitutionRegistry: React.FC = () => {
     } else {
       setInstitutions(prev => [...prev, { ...formData, id: Date.now().toString() }]);
     }
+    resetForm();
+  };
+
+  const resetForm = () => {
     setFormData({ 
       id: '', 
       name: '', 
@@ -46,15 +53,23 @@ const InstitutionRegistry: React.FC = () => {
       repurchaseMora: 0,
       ticketFee: 0, 
       transferFee: 0, 
-      minDays: 0 
+      serasaFee: 0,
+      signatureFee: 0,
+      minDays: 0,
+      observations: ''
     });
   };
 
   const handleEdit = (inst: FinancialInstitution) => {
     setFormData({
       ...inst,
+      repurchaseRate: inst.repurchaseRate || 0,
       repurchasePenalty: inst.repurchasePenalty || 0,
-      repurchaseMora: inst.repurchaseMora || 0
+      repurchaseMora: inst.repurchaseMora || 0,
+      serasaFee: inst.serasaFee || 0,
+      signatureFee: inst.signatureFee || 0,
+      minDays: inst.minDays || 0,
+      observations: inst.observations || ''
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -70,7 +85,7 @@ const InstitutionRegistry: React.FC = () => {
             </h3>
             {formData.id && (
               <button 
-                onClick={() => setFormData({ id: '', name: '', monthlyRate: 0, adValorem: 0, tac: 0, iofDaily: 0.0041, iofFixed: 0.38, repurchaseRate: 0, repurchasePenalty: 0, repurchaseMora: 0, ticketFee: 0, transferFee: 0, minDays: 0 })} 
+                onClick={resetForm} 
                 className="text-[10px] text-slate-400 hover:text-blue-600 font-bold uppercase tracking-widest"
               >
                 Cancelar
@@ -78,8 +93,7 @@ const InstitutionRegistry: React.FC = () => {
             )}
           </div>
           
-          <form onSubmit={handleSave} className="p-6 space-y-8">
-            {/* INFORMAÇÕES GERAIS */}
+          <form onSubmit={handleSave} className="p-6 space-y-6">
             <section className="space-y-4">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Identificação do Banco / Fundo</label>
@@ -87,7 +101,6 @@ const InstitutionRegistry: React.FC = () => {
               </div>
             </section>
 
-            {/* SEÇÃO ANTECIPAÇÃO */}
             <section className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                 <Wallet size={16} className="text-blue-600" />
@@ -107,64 +120,99 @@ const InstitutionRegistry: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">IOF Fixo (%)</label>
-                  <input type="number" step="0.0001" value={formData.iofFixed} onChange={e => setFormData({...formData, iofFixed: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">TAC (R$)</label>
+                  <input type="number" step="0.01" value={formData.tac} onChange={e => setFormData({...formData, tac: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
                 </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Transf. (R$)</label>
+                  <input type="number" step="0.01" value={formData.transferFee} onChange={e => setFormData({...formData, transferFee: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1">
+                    <Clock size={10} /> Prazo Mín. (Dias)
+                  </label>
+                  <input type="number" value={formData.minDays} onChange={e => setFormData({...formData, minDays: parseInt(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
+                </div>
+                <div className="flex items-center">
+                   <p className="text-[9px] text-slate-400 leading-tight italic mt-2">Usado apenas para cálculos de antecipação.</p>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                <ShieldAlert size={16} className="text-rose-600" />
+                <h4 className="text-xs font-bold text-slate-900 uppercase">Configuração IOF</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">IOF Diário (%)</label>
                   <input type="number" step="0.0001" value={formData.iofDaily} onChange={e => setFormData({...formData, iofDaily: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-1">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">TAC (R$)</label>
-                  <input type="number" step="0.01" value={formData.tac} onChange={e => setFormData({...formData, tac: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">IOF Fixo (%)</label>
+                  <input type="number" step="0.01" value={formData.iofFixed} onChange={e => setFormData({...formData, iofFixed: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
                 </div>
-                <div className="col-span-1">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Transf. (R$)</label>
-                  <input type="number" step="0.01" value={formData.transferFee} onChange={e => setFormData({...formData, transferFee: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
-                </div>
-                <div className="col-span-1">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Boleto (R$)</label>
-                  <input type="number" step="0.01" value={formData.ticketFee} onChange={e => setFormData({...formData, ticketFee: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1">
-                  Prazo Mínimo (Dias)
-                  <Info size={12} className="text-slate-300" />
-                </label>
-                <input type="number" value={formData.minDays} onChange={e => setFormData({...formData, minDays: parseInt(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
               </div>
             </section>
 
-            {/* SEÇÃO RECOMPRA */}
-            <section className="space-y-4 pt-4 border-t border-slate-100">
+            <section className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                <Search size={16} className="text-emerald-600" />
+                <h4 className="text-xs font-bold text-slate-900 uppercase">Custos por Título</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Boleto (R$)</label>
+                  <input type="number" step="0.01" value={formData.ticketFee} onChange={e => setFormData({...formData, ticketFee: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Serasa (R$)</label>
+                  <input type="number" step="0.01" value={formData.serasaFee} onChange={e => setFormData({...formData, serasaFee: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Assinatura Eletrônica (R$)</label>
+                  <input type="number" step="0.01" value={formData.signatureFee} onChange={e => setFormData({...formData, signatureFee: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                 <RefreshCw size={16} className="text-amber-600" />
                 <h4 className="text-xs font-bold text-slate-900 uppercase">Custos de Recompra</h4>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Juros Recompra (% a.m.)</label>
-                  <div className="relative">
-                    <input type="number" step="0.01" value={formData.repurchaseRate} onChange={e => setFormData({...formData, repurchaseRate: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-amber-50/30 border border-amber-100 rounded-lg text-sm focus:bg-white outline-none" />
-                    <Percent size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-300" />
-                  </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Juros (% a.m.)</label>
+                  <input type="number" step="0.01" value={formData.repurchaseRate} onChange={e => setFormData({...formData, repurchaseRate: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Multa (%)</label>
-                  <input type="number" step="0.01" value={formData.repurchasePenalty} onChange={e => setFormData({...formData, repurchasePenalty: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-amber-50/30 border border-amber-100 rounded-lg text-sm focus:bg-white outline-none" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mora (% a.m.)</label>
-                  <input type="number" step="0.01" value={formData.repurchaseMora} onChange={e => setFormData({...formData, repurchaseMora: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-amber-50/30 border border-amber-100 rounded-lg text-sm focus:bg-white outline-none" />
+                  <input type="number" step="0.01" value={formData.repurchasePenalty} onChange={e => setFormData({...formData, repurchasePenalty: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 italic">Multa sobre o valor de face. Juros e Mora calculados pro-rata die com base nos dias de atraso.</p>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mora (% a.m.)</label>
+                <input type="number" step="0.01" value={formData.repurchaseMora} onChange={e => setFormData({...formData, repurchaseMora: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
+              </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                <FileText size={16} className="text-slate-600" />
+                <h4 className="text-xs font-bold text-slate-900 uppercase">Observações do Contrato</h4>
+              </div>
+              <textarea 
+                rows={3} 
+                placeholder="Informações adicionais, regras de feriados, etc..." 
+                value={formData.observations} 
+                onChange={e => setFormData({...formData, observations: e.target.value})} 
+                className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none resize-none"
+              />
             </section>
 
             <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
@@ -187,22 +235,27 @@ const InstitutionRegistry: React.FC = () => {
               </div>
             ) : (
               institutions.map(inst => (
-                <div key={inst.id} className="p-6 flex items-center justify-between hover:bg-slate-50/80 transition-colors group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xl border border-blue-100">
+                <div key={inst.id} className="p-6 flex items-start justify-between hover:bg-slate-50/80 transition-colors group">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xl border border-blue-100 shrink-0">
                       {inst.name.charAt(0)}
                     </div>
                     <div className="flex flex-col">
                       <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{inst.name}</h4>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">Antecipação: <span className="text-slate-900">{inst.monthlyRate}% a.m.</span></p>
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">Recompra: <span className="text-amber-600">{inst.repurchaseRate}% a.m.</span></p>
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">Multa/Mora: <span className="text-amber-600">{inst.repurchasePenalty}% / {inst.repurchaseMora}%</span></p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">Taxa: <span className="text-slate-900">{inst.monthlyRate}% a.m.</span></p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">IOF Fixo: <span className="text-slate-900">{inst.iofFixed}%</span></p>
                         <p className="text-[10px] text-slate-500 uppercase font-bold">Mínimo: <span className="text-slate-900">{inst.minDays}d</span></p>
                       </div>
+                      {inst.observations && (
+                        <div className="mt-2 flex items-start gap-1.5 p-2 bg-slate-50 rounded border border-slate-100">
+                          <Info size={12} className="text-slate-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-slate-500 leading-tight italic">{inst.observations}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 shrink-0">
                     <button onClick={() => handleEdit(inst)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Editar"><Edit2 size={18} /></button>
                     <button onClick={() => setInstitutions(institutions.filter(i => i.id !== inst.id))} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Excluir"><Trash2 size={18} /></button>
                   </div>

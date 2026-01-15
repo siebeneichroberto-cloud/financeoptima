@@ -29,7 +29,10 @@ const INITIAL_INSTITUTIONS: FinancialInstitution[] = [
     repurchaseMora: 1.0,
     ticketFee: 5.0,
     transferFee: 10.0,
-    minDays: 15
+    serasaFee: 12.50,
+    signatureFee: 3.50,
+    minDays: 15,
+    observations: 'Taxas padrão conforme contrato firmado em Janeiro/2024. Prazo de liquidação D+1.'
   }
 ];
 
