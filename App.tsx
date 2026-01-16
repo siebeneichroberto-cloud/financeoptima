@@ -19,7 +19,8 @@ import {
   ChevronDown,
   Building2,
   Calculator,
-  Scale
+  Scale,
+  Layers
 } from 'lucide-react';
 import { User, UserRole, Module } from './types';
 import { db } from './db';
@@ -142,6 +143,7 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFinanceExpanded, setIsFinanceExpanded] = useState(true);
+  const [isAdvanceExpanded, setIsAdvanceExpanded] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
@@ -152,9 +154,12 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Abre automaticamente se o usuário navegar para uma rota financeira
     if (location.pathname.startsWith('/finance')) {
       setIsFinanceExpanded(true);
+      // Abre o submenu de antecipação se estiver em uma rota de antecipação
+      if (['institutions', 'calculator', 'comparator'].some(path => location.pathname.includes(path))) {
+        setIsAdvanceExpanded(true);
+      }
     }
   }, [location.pathname]);
 
@@ -210,11 +215,30 @@ const App: React.FC = () => {
 
               {isFinanceExpanded && isSidebarOpen && (
                 <div className="pl-6 space-y-1 animate-in slide-in-from-top-2 duration-300">
-                  {currentUser.role === UserRole.MASTER && (
-                    <SidebarSubItem to="/finance/institutions" icon={<Building2 size={16} />} label="Instituições" />
-                  )}
-                  <SidebarSubItem to="/finance/calculator" icon={<Calculator size={16} />} label="Simulador" />
-                  <SidebarSubItem to="/finance/comparator" icon={<Scale size={16} />} label="Comparador Prev/Real" />
+                  {/* Submenu Nível 2: Antecipação de Títulos */}
+                  <div className="space-y-1">
+                    <button 
+                      onClick={() => setIsAdvanceExpanded(!isAdvanceExpanded)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5 ${isAdvanceExpanded ? 'text-blue-400' : ''}`}
+                    >
+                      <Layers size={18} className="shrink-0" />
+                      <span className="text-[13px] font-bold flex-1 text-left">Antecipação de Títulos</span>
+                      {isAdvanceExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </button>
+
+                    {isAdvanceExpanded && (
+                      <div className="pl-4 space-y-1 animate-in slide-in-from-top-1 duration-200">
+                        {currentUser.role === UserRole.MASTER && (
+                          <SidebarSubItem to="/finance/institutions" icon={<Building2 size={15} />} label="Instituições" />
+                        )}
+                        <SidebarSubItem to="/finance/calculator" icon={<Calculator size={15} />} label="Simulador" />
+                        <SidebarSubItem to="/finance/comparator" icon={<Scale size={15} />} label="Comparador Prev/Real" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Espaço para novos submenus financeiros no futuro */}
+                  {/* Exemplo: <SidebarSubItem to="/finance/other" icon={<CreditCard size={15} />} label="Outro Módulo" /> */}
                 </div>
               )}
             </div>
@@ -316,12 +340,12 @@ const SidebarSubItem: React.FC<{ to: string; icon: React.ReactNode; label: strin
       to={to} 
       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
         isActive 
-          ? 'text-white bg-white/10' 
+          ? 'text-white bg-blue-600/30 border border-blue-500/20' 
           : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
       }`}
     >
       <span className={`shrink-0 ${isActive ? 'text-blue-400' : ''}`}>{icon}</span>
-      <span className="text-[13px] font-semibold">{label}</span>
+      <span className="text-[12px] font-semibold">{label}</span>
     </Link>
   );
 };
