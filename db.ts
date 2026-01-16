@@ -11,6 +11,7 @@ const INITIAL_MASTER: User = {
   id: '1',
   name: 'Administrador Master',
   email: 'master@finadvanced.com',
+  password: 'admin', // Senha padrão inicial
   role: UserRole.MASTER,
   permissions: [Module.ADMIN, Module.FINANCE]
 };
@@ -32,6 +33,7 @@ const INITIAL_INSTITUTIONS: FinancialInstitution[] = [
     serasaFee: 12.50,
     signatureFee: 3.50,
     minDays: 15,
+    workingDaysFloat: 2,
     observations: 'Taxas padrão conforme contrato firmado em Janeiro/2024. Prazo de liquidação D+1.'
   }
 ];
@@ -58,6 +60,11 @@ export const db = {
   saveOperation: (op: Operation) => {
     const ops = db.getOperations();
     localStorage.setItem(KEYS.OPERATIONS, JSON.stringify([op, ...ops]));
+  },
+  updateOperation: (id: string, updates: Partial<Operation>) => {
+    const ops = db.getOperations();
+    const updatedOps = ops.map(op => op.id === id ? { ...op, ...updates } : op);
+    localStorage.setItem(KEYS.OPERATIONS, JSON.stringify(updatedOps));
   },
   deleteOperation: (id: string) => {
     const ops = db.getOperations();

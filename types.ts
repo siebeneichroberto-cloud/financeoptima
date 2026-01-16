@@ -13,8 +13,15 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string; // Campo opcional para manter compatibilidade
   role: UserRole;
   permissions: Module[];
+}
+
+export interface ExtraFee {
+  id: string;
+  description: string;
+  value: number;
 }
 
 export interface FinancialInstitution {
@@ -25,15 +32,16 @@ export interface FinancialInstitution {
   tac: number;
   iofDaily: number;
   iofFixed: number;
-  repurchaseRate: number;    // Juros Recompra Mensal (% a.m.)
-  repurchasePenalty: number; // Multa Recompra (%)
-  repurchaseMora: number;    // Mora Recompra Mensal (% a.m.)
-  ticketFee: number;         // Valor emissão boleto (R$)
-  transferFee: number;       // Valor transferência (R$)
-  serasaFee: number;         // Custo consulta Serasa por título (R$)
-  signatureFee: number;      // Custo assinatura por título (R$)
-  minDays: number;           // Prazo Mínimo de Antecipação (Dias)
-  observations: string;      // Observações do contrato
+  repurchaseRate: number;    
+  repurchasePenalty: number; 
+  repurchaseMora: number;    
+  ticketFee: number;         
+  transferFee: number;       
+  serasaFee: number;         
+  signatureFee: number;      
+  minDays: number;           
+  workingDaysFloat: number;  
+  observations: string;      
 }
 
 export interface Title {
@@ -47,18 +55,26 @@ export interface Title {
 export interface Operation {
   id: string;
   date: string;
-  referenceDate: string; // Data usada no cálculo
+  referenceDate: string;
   institutionName: string;
   grossTotal: number;
   netTotal: number;
   discountTotal: number;
   titlesCount: number;
+  attachment?: {
+    name: string;
+    data: string; // Base64
+    type: string;
+  };
   details?: {
     results: CalculationResult[];
     repurchaseItems: any[];
     repurchaseTotal: number;
     fixedFees: number;
+    extraFees: ExtraFee[];
+    extraFeesTotal: number;
     totals: any;
+    workingDaysFloat: number;
   }
 }
 
@@ -75,6 +91,6 @@ export interface CalculationResult {
   ticketFeeValue: number;
   serasaFeeValue: number;
   signatureFeeValue: number;
-  days: number;           // Dias reais
-  calculationDays: number; // Dias utilizados para o cálculo (respeitando o mínimo)
+  days: number;           
+  calculationDays: number; 
 }

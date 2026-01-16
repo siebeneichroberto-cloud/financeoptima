@@ -22,12 +22,20 @@ const InstitutionRegistry: React.FC = () => {
     serasaFee: 0,
     signatureFee: 0,
     minDays: 0,
+    workingDaysFloat: 0,
     observations: ''
   });
 
   useEffect(() => {
     db.saveInstitutions(institutions);
   }, [institutions]);
+
+  const formatBRL = (val: number) => {
+    return val.toLocaleString('pt-BR', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +64,7 @@ const InstitutionRegistry: React.FC = () => {
       serasaFee: 0,
       signatureFee: 0,
       minDays: 0,
+      workingDaysFloat: 0,
       observations: ''
     });
   };
@@ -69,6 +78,7 @@ const InstitutionRegistry: React.FC = () => {
       serasaFee: inst.serasaFee || 0,
       signatureFee: inst.signatureFee || 0,
       minDays: inst.minDays || 0,
+      workingDaysFloat: inst.workingDaysFloat || 0,
       observations: inst.observations || ''
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -136,8 +146,11 @@ const InstitutionRegistry: React.FC = () => {
                   </label>
                   <input type="number" value={formData.minDays} onChange={e => setFormData({...formData, minDays: parseInt(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
                 </div>
-                <div className="flex items-center">
-                   <p className="text-[9px] text-slate-400 leading-tight italic mt-2">Usado apenas para cálculos de antecipação.</p>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1">
+                    <RefreshCw size={10} /> Float de Dias
+                  </label>
+                  <input type="number" value={formData.workingDaysFloat} onChange={e => setFormData({...formData, workingDaysFloat: parseInt(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
                 </div>
               </div>
             </section>
@@ -180,38 +193,17 @@ const InstitutionRegistry: React.FC = () => {
               </div>
             </section>
 
-            <section className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <RefreshCw size={16} className="text-amber-600" />
-                <h4 className="text-xs font-bold text-slate-900 uppercase">Custos de Recompra</h4>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Juros (% a.m.)</label>
-                  <input type="number" step="0.01" value={formData.repurchaseRate} onChange={e => setFormData({...formData, repurchaseRate: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Multa (%)</label>
-                  <input type="number" step="0.01" value={formData.repurchasePenalty} onChange={e => setFormData({...formData, repurchasePenalty: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mora (% a.m.)</label>
-                <input type="number" step="0.01" value={formData.repurchaseMora} onChange={e => setFormData({...formData, repurchaseMora: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none" />
-              </div>
-            </section>
-
             <section className="space-y-4 pt-4 border-t border-slate-100">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                 <FileText size={16} className="text-slate-600" />
-                <h4 className="text-xs font-bold text-slate-900 uppercase">Observações do Contrato</h4>
+                <h4 className="text-xs font-bold text-slate-900 uppercase">Observações</h4>
               </div>
               <textarea 
                 rows={3} 
-                placeholder="Informações adicionais, regras de feriados, etc..." 
+                placeholder="Observações..." 
                 value={formData.observations} 
                 onChange={e => setFormData({...formData, observations: e.target.value})} 
-                className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:bg-white outline-none resize-none"
+                className="w-full px-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-sm resize-none outline-none"
               />
             </section>
 
@@ -244,15 +236,11 @@ const InstitutionRegistry: React.FC = () => {
                       <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{inst.name}</h4>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                         <p className="text-[10px] text-slate-500 uppercase font-bold">Taxa: <span className="text-slate-900">{inst.monthlyRate}% a.m.</span></p>
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">IOF Fixo: <span className="text-slate-900">{inst.iofFixed}%</span></p>
                         <p className="text-[10px] text-slate-500 uppercase font-bold">Mínimo: <span className="text-slate-900">{inst.minDays}d</span></p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">Float: <span className="text-slate-900">{inst.workingDaysFloat}u</span></p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">Serasa: <span className="text-slate-900">R$ {formatBRL(inst.serasaFee || 0)}</span></p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">Assinatura: <span className="text-slate-900">R$ {formatBRL(inst.signatureFee || 0)}</span></p>
                       </div>
-                      {inst.observations && (
-                        <div className="mt-2 flex items-start gap-1.5 p-2 bg-slate-50 rounded border border-slate-100">
-                          <Info size={12} className="text-slate-400 mt-0.5 shrink-0" />
-                          <p className="text-[10px] text-slate-500 leading-tight italic">{inst.observations}</p>
-                        </div>
-                      )}
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
